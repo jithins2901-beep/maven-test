@@ -11,7 +11,7 @@ public class BmiCalculatorTest {
 
     @Test
     public void testCalculateBMI() {
-        assertEquals(25.00, bmi.calculateBMI(70, 1.75), 0.01);
+        assertEquals(22.86, bmi.calculateBMI(70, 1.75), 0.01);
     }
 
     @Test
