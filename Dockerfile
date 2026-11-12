@@ -1,4 +1,3 @@
-
 # Use Maven with Java 17
 FROM maven:3.9.9-eclipse-temurin-17
 
@@ -8,7 +7,7 @@ WORKDIR /app
 # Copy Maven configuration
 COPY pom.xml .
 
-# Copy source and test files
+# Copy Java source and test files
 COPY src ./src
 
 # Download project dependencies
