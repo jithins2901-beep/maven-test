@@ -1,23 +1,37 @@
-# Use Maven with Java 17
-FROM maven:3.9.9-eclipse-temurin-17
+# Stage 1: Build and test
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy Maven configuration
+# Copy Maven configuration first for better caching
 COPY pom.xml .
 
-# Copy Java source and test files
+# Download dependencies
+RUN mvn dependency:go-offline
+
+# Copy source code
 COPY src ./src
 
-# Download project dependencies
-RUN mvn dependency:resolve
+# Run JUnit tests
+RUN mvn clean verify
 
-# Clean and run JUnit tests
-RUN mvn clean test
+# Stage 2: Production runtime
+FROM eclipse-temurin:21-jre
 
-# Package the Maven project
-RUN mvn package
+WORKDIR /app
 
-# Run tests when container starts
-CMD ["mvn", "test"]
+# Create non-root user
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
+# Copy packaged JAR
+COPY --from=build /app/target/*.jar app.jar
+
+# Set permissions
+RUN chown appuser:appgroup app.jar
+
+USER appuser
+
+EXPOSE 8080
+
+# Run Java application
+ENTRYPOINT ["java", "-jar", "app.jar"]
