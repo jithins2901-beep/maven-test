@@ -3,9 +3,12 @@ name: BMI Calculator CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
 
@@ -25,7 +28,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run JUnit Tests
+      - name: Clean and Test
         run: mvn clean test
 
       - name: Package Project
@@ -34,18 +37,21 @@ jobs:
       - name: Dependency Tree
         run: mvn dependency:tree
 
+
   # JOB 2: Docker Build and Push
   docker:
     name: Docker Build and Push
     runs-on: ubuntu-latest
+
     needs: maven
+
     if: github.event_name == 'push'
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Check Docker Secrets
+      - name: Verify Docker Secrets
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
@@ -54,11 +60,13 @@ jobs:
             echo "DOCKER_USERNAME secret is missing"
             exit 1
           fi
+
           if [ -z "$DOCKER_TOKEN" ]; then
             echo "DOCKER_PASSWORD secret is missing"
             exit 1
           fi
-          echo "Docker secrets are configured"
+
+          echo "Both Docker secrets are available"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
